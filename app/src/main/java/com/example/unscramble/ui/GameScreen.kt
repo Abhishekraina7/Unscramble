@@ -15,7 +15,9 @@
  */
 package com.example.unscramble.ui
 
-import androidx.activity.compose.LocalActivity
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,9 +45,11 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -222,7 +226,23 @@ private fun FinalScoreDialog(
     onPlayAgain: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val activity = LocalActivity.current
+
+    fun Context.findActivity(): Activity? {
+        var current = this
+        while (current is ContextWrapper) {
+            if (current is Activity) return current
+            current = current.baseContext
+        }
+        return null
+    }
+    @Composable
+    fun getActivity(): Activity? {
+        val context = LocalContext.current
+        return remember (context){context.findActivity()}
+    }
+
+    val activity = getActivity()
+    activity?.finish()
 
     AlertDialog(
         onDismissRequest = {
