@@ -5,16 +5,11 @@ import com.example.unscramble.ui.GameViewModel
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
-import org.junit.Before
+import junit.framework.TestCase.assertNotSame
 import org.junit.Test
 
 class GameViewModelTest {
-    private lateinit var viewModel: GameViewModel
-
-    @Before
-    fun setup(){
-        viewModel = GameViewModel()
-    }
+    private var viewModel = GameViewModel()
 
     //It is similar to using static in java
     companion object {
@@ -47,5 +42,16 @@ class GameViewModelTest {
         assertTrue(currentGameUiState.isGuessedWordWrong)
     }
 
+    @Test
+    fun gameViewModel_Initialization_FirstWordLoaded(){
+        val gameUiState = viewModel.uiState.value
+        val unScrambledWord = getUnscrambledWord(gameUiState.currentScrambledWord)
 
+        val updatedGameUiState = viewModel.uiState.value
+        assertNotSame(unScrambledWord, updatedGameUiState.currentScrambledWord)
+        assertEquals(1,updatedGameUiState.currentWordCount)
+        assertEquals(0, updatedGameUiState.score)
+        assertFalse(updatedGameUiState.isGuessedWordWrong)
+        assertFalse(updatedGameUiState.isGameOver)
+    }
 }
