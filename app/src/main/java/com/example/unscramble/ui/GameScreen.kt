@@ -39,12 +39,17 @@ import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,7 +86,16 @@ fun GameScreen(
         Text(
             text = stringResource(R.string.app_name),
             style = typography.titleLarge,
+            modifier = Modifier.padding(all = 5.dp)
         )
+
+        SingleChoiceSegmentedButton(
+            difficulty = gameUiState.difficulty,
+            onDifficultyChange = { newDifficulty ->
+                gameViewModel.selectDifficulty(newDifficulty)
+            }
+        )
+
         GameLayout(
             onUserGuessChanged = { gameViewModel.updateUserGuess(it) },
             onKeyBoardDone = {gameViewModel.checkUserGuess()},
@@ -173,8 +187,7 @@ fun GameLayout(
                 modifier = Modifier
                     .clip(shapes.medium)
                     .background(colorScheme.surfaceTint)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                    .align(alignment = Alignment.End),
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
                 text = stringResource(R.string.word_count, wordCount),
                 style = typography.titleMedium,
                 color = colorScheme.onPrimary
@@ -217,6 +230,35 @@ fun GameLayout(
     }
 }
 
+@Composable
+fun SingleChoiceSegmentedButton(
+    difficulty: Difficulty,
+    onDifficultyChange: (Difficulty) -> Unit
+){
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    var options = Difficulty.entries.toTypedArray()
+    SingleChoiceSegmentedButtonRow {
+        options.forEachIndexed { index, option ->
+            SegmentedButton(
+                //this decides the cornors for first and last index
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size
+                ),
+                onClick = {
+                    selectedIndex = index
+                    onDifficultyChange(option)
+                          },
+                selected = (
+                        index == selectedIndex
+                        ),
+                label = {Text(option.name)}
+            )
+        }
+    }
+
+}
+
 /*
  * Creates and shows an AlertDialog with final score.
  */
@@ -235,6 +277,7 @@ private fun FinalScoreDialog(
         }
         return null
     }
+
     @Composable
     fun getActivity(): Activity? {
         val context = LocalContext.current
@@ -242,7 +285,6 @@ private fun FinalScoreDialog(
     }
 
     val activity = getActivity()
-    activity?.finish()
 
     AlertDialog(
         onDismissRequest = {

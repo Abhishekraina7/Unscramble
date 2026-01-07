@@ -23,9 +23,24 @@ class GameViewModel : ViewModel(){
         resetGame()
     }
 
+    fun selectDifficulty(selectedDifficulty: Difficulty){
+        _uiState.update { currentState ->
+            currentState.copy(difficulty = selectedDifficulty)
+        }
+        resetGame()
+    }
+
     private fun pickRandomWordAndShuffle() : String {
+        val difficulty = _uiState.value.difficulty
+        val wordList = allWords.filter{word ->
+            when(difficulty){
+                 Difficulty.EASY -> word.length <= 5
+                 Difficulty.MEDIUM -> word.length in 6..8
+                 Difficulty.HARD -> word.length > 8
+            }
+        }
         do{
-            currentWord = allWords.random()
+            currentWord = wordList.random()
         }while(usedWords.contains(currentWord))
 
         usedWords.add(currentWord)
@@ -43,7 +58,10 @@ class GameViewModel : ViewModel(){
 
     fun resetGame(){
        usedWords.clear()
-       _uiState.value = GameUiState(currentScrambledWord = pickRandomWordAndShuffle())
+       _uiState.value = GameUiState(
+           currentScrambledWord = pickRandomWordAndShuffle(),
+           difficulty = Difficulty.EASY
+          )
     }
 
     fun updateUserGuess(guessWord: String){
