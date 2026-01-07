@@ -7,12 +7,26 @@ import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
+
+enum class GameSound{
+    CORRECT_GUESS,
+    WRONG_GUESS,
+    GAME_OVER,
+}
 
 class GameViewModel : ViewModel(){
+    private val _soundEvent = MutableSharedFlow<GameSound>()
+    val soundEvent: SharedFlow<GameSound> = _soundEvent.asSharedFlow()
+
     private  val _uiState = MutableStateFlow(GameUiState()) //realdata which is only changed by view model
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()   //exposed to UI for read-Only purposes
     private lateinit var currentWord: String
@@ -21,6 +35,12 @@ class GameViewModel : ViewModel(){
 
     init {
         resetGame()
+    }
+
+    private fun triggerSound(sound : GameSound){
+        viewModelScope.launch {
+            _soundEvent.emit(sound)
+        }
     }
 
     fun selectDifficulty(selectedDifficulty: Difficulty){
@@ -72,10 +92,12 @@ class GameViewModel : ViewModel(){
       if(userGuess.equals(currentWord, ignoreCase = true)){
           val updateScore = _uiState.value.score.plus(SCORE_INCREASE)
           updateGameState(updateScore)
+          triggerSound(GameSound.CORRECT_GUESS)
       }else{
         _uiState.update { currentState ->
             currentState.copy(isGuessedWordWrong = true)
         }
+          triggerSound(GameSound.WRONG_GUESS)
       }
         updateUserGuess("") //blank string pass krdi
     }
@@ -89,6 +111,7 @@ class GameViewModel : ViewModel(){
                     isGameOver = true,
                 )
             }
+            triggerSound(GameSound.GAME_OVER)
         }else{
             _uiState.update { currentState ->
                 currentState.copy(

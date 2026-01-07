@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -73,6 +74,18 @@ fun GameScreen(
 ) {
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
     val gameUiState by gameViewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val soundPlayer = remember { SoundPlayer(context) }
+
+    LaunchedEffect(Unit) {
+        gameViewModel.soundEvent.collect { sound ->
+            when(sound){
+                GameSound.CORRECT_GUESS -> soundPlayer.playCorrectGuessSound()
+                GameSound.WRONG_GUESS -> soundPlayer.playWrongGuessSound()
+                GameSound.GAME_OVER -> soundPlayer.playGameOverSound()
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -171,7 +184,9 @@ fun GameLayout(
     userGuess: String,
     wordCount: Int,
     currentScrambledWord: String,
-    modifier: Modifier = Modifier) {
+
+    modifier: Modifier = Modifier
+) {
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
     Card(
@@ -268,7 +283,8 @@ private fun FinalScoreDialog(
     onPlayAgain: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
+    val context = LocalContext.current
+    val soundPlayer = remember { SoundPlayer(context) }
     fun Context.findActivity(): Activity? {
         var current = this
         while (current is ContextWrapper) {
@@ -298,7 +314,9 @@ private fun FinalScoreDialog(
         dismissButton = {
             TextButton(
                 onClick = {
+                    soundPlayer.release()
                     activity?.finish()
+
                 }
             ) {
                 Text(text = stringResource(R.string.exit))
