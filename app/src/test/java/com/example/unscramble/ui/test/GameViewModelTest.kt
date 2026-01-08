@@ -2,7 +2,7 @@ package com.example.unscramble.ui.test
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
 import com.example.unscramble.data.getUnscrambledWord
-import com.example.unscramble.ui.GameViewModel
+import com.example.unscramble.viewModel.GameViewModel
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue

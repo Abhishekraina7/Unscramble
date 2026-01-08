@@ -1,4 +1,4 @@
-package com.example.unscramble.ui
+package com.example.unscramble.viewModel
 import androidx.lifecycle.ViewModel
 import com.example.unscramble.data.allWords
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
+import com.example.unscramble.Components.UserPreferencesRepository
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,7 +24,11 @@ enum class GameSound{
     GAME_OVER,
 }
 
-class GameViewModel : ViewModel(){
+class GameViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+
+) : ViewModel(){
+
     private val _soundEvent = MutableSharedFlow<GameSound>()
     val soundEvent: SharedFlow<GameSound> = _soundEvent.asSharedFlow()
 
@@ -34,6 +39,12 @@ class GameViewModel : ViewModel(){
     var userGuess by mutableStateOf("")
 
     init {
+        // Observe high score and update UI state whenever it changes in DataStore
+        viewModelScope.launch {
+            userPreferencesRepository.highestScore.collect { hScore ->
+                _uiState.update { it.copy(highestScore = hScore) }
+            }
+        }
         resetGame()
     }
 
@@ -81,7 +92,7 @@ class GameViewModel : ViewModel(){
        _uiState.value = GameUiState(
            currentScrambledWord = pickRandomWordAndShuffle(),
            difficulty = Difficulty.EASY
-          )
+       )
     }
 
     fun updateUserGuess(guessWord: String){
@@ -110,6 +121,10 @@ class GameViewModel : ViewModel(){
                     score = updatedScore,
                     isGameOver = true,
                 )
+            }
+            // Check and save high score when game ends
+            viewModelScope.launch {
+                userPreferencesRepository.saveHighestScore(updatedScore)
             }
             triggerSound(GameSound.GAME_OVER)
         }else{
