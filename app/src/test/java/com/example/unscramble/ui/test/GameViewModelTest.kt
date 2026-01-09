@@ -1,17 +1,26 @@
 package com.example.unscramble.ui.test
+import com.example.unscramble.Components.UserPreferencesRepository
 import com.example.unscramble.data.MAX_NO_OF_WORDS
 import com.example.unscramble.data.SCORE_INCREASE
 import com.example.unscramble.data.getUnscrambledWord
 import com.example.unscramble.viewModel.GameViewModel
+import io.mockk.mockk
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.assertNotSame
+import org.junit.Before
 import org.junit.Test
 
 class GameViewModelTest {
-    private var viewModel = GameViewModel()
+    private lateinit var viewModel: GameViewModel
 
+    private val FakeRepository: UserPreferencesRepository = mockk(relaxed = true)
+
+    @Before
+    fun setup(){
+        viewModel = GameViewModel(FakeRepository)
+    }
     //It is similar to using static in java
     companion object {
         private const val SCORE_AFTER_CORRECT_ANSWER  = SCORE_INCREASE
