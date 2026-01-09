@@ -26,7 +26,6 @@ enum class GameSound{
 
 class GameViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
-
 ) : ViewModel(){
 
     private val _soundEvent = MutableSharedFlow<GameSound>()
@@ -89,9 +88,12 @@ class GameViewModel(
 
     fun resetGame(){
        usedWords.clear()
+        val currentHighestScore = _uiState.value.highestScore
+        val currentDifficulty = _uiState.value.difficulty
        _uiState.value = GameUiState(
            currentScrambledWord = pickRandomWordAndShuffle(),
-           difficulty = Difficulty.EASY
+           highestScore = currentHighestScore,
+           difficulty = currentDifficulty
        )
     }
 
