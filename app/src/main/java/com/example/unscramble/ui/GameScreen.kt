@@ -1,18 +1,4 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+
 package com.example.unscramble.ui
 
 import android.app.Activity
@@ -64,18 +50,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.unscramble.Components.SoundPlayer
+import com.example.unscramble.Components.UserPreferencesRepository
 import com.example.unscramble.R
 import com.example.unscramble.ui.theme.UnscrambleTheme
+import com.example.unscramble.viewModel.Difficulty
+import com.example.unscramble.viewModel.GameSound
+import com.example.unscramble.viewModel.GameViewModel
 
 
 @Composable
-fun GameScreen(
-    gameViewModel: GameViewModel = viewModel()
-) {
+fun GameScreen() {
+    val context = LocalContext.current
+    val gameViewModel: GameViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                GameViewModel(UserPreferencesRepository(context))
+            }
+        }
+    )
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
     val gameUiState by gameViewModel.uiState.collectAsState()
-    val context = LocalContext.current
     val soundPlayer = remember { SoundPlayer(context) }
+
 
     LaunchedEffect(Unit) {
         gameViewModel.soundEvent.collect { sound ->
@@ -103,7 +102,6 @@ fun GameScreen(
         )
 
         SingleChoiceSegmentedButton(
-            difficulty = gameUiState.difficulty,
             onDifficultyChange = { newDifficulty ->
                 gameViewModel.selectDifficulty(newDifficulty)
             }
@@ -151,7 +149,12 @@ fun GameScreen(
         }
         GameStatus(
             score = gameUiState.score,
-            modifier = Modifier.padding(20.dp))
+            modifier = Modifier.padding(20.dp)
+        )
+        GameStatus(
+            score = gameUiState.highestScore,
+            modifier = Modifier.padding(5.dp)
+        )
     }
     if(gameUiState.isGameOver){
        FinalScoreDialog(
@@ -247,7 +250,6 @@ fun GameLayout(
 
 @Composable
 fun SingleChoiceSegmentedButton(
-    difficulty: Difficulty,
     onDifficultyChange: (Difficulty) -> Unit
 ){
     var selectedIndex by remember { mutableIntStateOf(0) }
@@ -316,7 +318,6 @@ private fun FinalScoreDialog(
                 onClick = {
                     soundPlayer.release()
                     activity?.finish()
-
                 }
             ) {
                 Text(text = stringResource(R.string.exit))
