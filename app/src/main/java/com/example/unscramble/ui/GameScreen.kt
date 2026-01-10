@@ -4,6 +4,7 @@ package com.example.unscramble.ui
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -149,10 +150,12 @@ fun GameScreen() {
         }
         GameStatus(
             score = gameUiState.score,
+            text = R.string.score,
             modifier = Modifier.padding(20.dp)
         )
         GameStatus(
             score = gameUiState.highestScore,
+            text = R.string.Highestscore,
             modifier = Modifier.padding(5.dp)
         )
     }
@@ -166,13 +169,14 @@ fun GameScreen() {
 
 @Composable
 fun GameStatus(
+    @StringRes text: Int,
     score: Int,
     modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
     ) {
         Text(
-            text = stringResource(R.string.score, score),
+            text = stringResource(text, score),
             style = typography.headlineMedium,
             modifier = Modifier.padding(8.dp)
         )
